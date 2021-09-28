@@ -238,7 +238,7 @@ func TestPresentTimeout(t *testing.T) {
 func TestFutureTimeout(t *testing.T) {
 	ph := func(b []byte) []byte {
 		// block until deadline is set
-		time.Sleep(200 * time.Millisecond)
+		time.Sleep(300 * time.Millisecond)
 		return b
 	}
 	c := Hairpin(ph)
