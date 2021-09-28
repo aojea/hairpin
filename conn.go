@@ -190,13 +190,13 @@ func (c *conn) Write(b []byte) (n int, err error) {
 		return n, io.ErrClosedPipe
 	case <-c.writeDeadline.wait():
 		return n, os.ErrDeadlineExceeded
-	case c.readCh <- c.transport()(buf):
+	case c.readCh <- c.handler()(buf):
 		return nr, nil
 	}
 
 }
 
-func (c *conn) transport() packetHandlerFunc {
+func (c *conn) handler() packetHandlerFunc {
 	if c.packetHandler != nil {
 		return c.packetHandler
 	}
