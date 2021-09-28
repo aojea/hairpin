@@ -16,11 +16,6 @@ import (
 	"time"
 )
 
-var (
-	aLongTimeAgo = time.Unix(233431200, 0)
-	neverTimeout = time.Time{}
-)
-
 // TestBasicIO tests that the data sent on c is properly received back on c.
 func TestBasicIO(t *testing.T) {
 	ph := func(b []byte) []byte {
@@ -171,18 +166,6 @@ func TestReadTimeout(t *testing.T) {
 	checkForTimeoutError(t, err)
 	if _, err := c.Write(make([]byte, 1024)); err != nil {
 		t.Errorf("unexpected Write error: %v", err)
-	}
-}
-
-// testWriteTimeout tests that Write timeouts do not affect Read.
-func testWriteTimeout(t *testing.T) {
-	c := Hairpin(nil)
-	go chunkedCopy(c, rand.New(rand.NewSource(0)))
-	c.SetWriteDeadline(aLongTimeAgo)
-	_, err := c.Write(make([]byte, 1024))
-	checkForTimeoutError(t, err)
-	if _, err := c.Read(make([]byte, 1024)); err != nil {
-		t.Errorf("unexpected Read error: %v", err)
 	}
 }
 
