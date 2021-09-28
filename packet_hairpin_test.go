@@ -197,7 +197,12 @@ func TestPacketPastTimeout(t *testing.T) {
 // testPresentTimeout tests that a past deadline set while there are pending
 // Read and Write operations immediately times out those operations.
 func TestPacketPresentTimeout(t *testing.T) {
-	c := PacketHairpin(nil)
+	ph := func(b []byte) []byte {
+		// block until deadline is set
+		time.Sleep(200 * time.Millisecond)
+		return b
+	}
+	c := Hairpin(ph)
 	var wg sync.WaitGroup
 	defer wg.Wait()
 	wg.Add(3)
@@ -237,6 +242,8 @@ func TestPacketPresentTimeout(t *testing.T) {
 // Read and Write operations.
 func TestPacketFutureTimeout(t *testing.T) {
 	ph := func(b []byte) []byte {
+		// block until deadline is set
+		time.Sleep(200 * time.Millisecond)
 		return b
 	}
 	c := PacketHairpin(ph)
