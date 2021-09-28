@@ -47,34 +47,36 @@ func (h *hairpin) RemoteAddr() net.Addr {
 }
 
 // Hairpin creates a half-duplex, in-memory, synchronous stream connection where
-// data written on the connection is processed by an optional hook and then read
-// back on the same connection. Reads and Write are serialized, Writes are
-// blocked by Reads.
-func Hairpin(fn packetHandlerFunc) net.Conn {
-	return &hairpin{newConn(fn)}
+// data written on the connection is processed by the handler and then read back
+// on the same connection. Reads and Write are serialized, Writes are blocked by
+// Reads. If not handler is specified, data is copied directly from Tx to Rx.
+// The handler should be safe for concurrent use by multiple goroutines
+func Hairpin(handler func(b []byte) []byte) net.Conn {
+	return &hairpin{newConn(handler)}
 }
 
-// Dialer
+// HairpinDialer contains options to Dial a Hairpin connection
 type HairpinDialer struct {
-	PacketHandler packetHandlerFunc
+	Handler func(b []byte) []byte
 }
 
 // Dial creates an in memory connection that is processed by the packet handler
 func (h *HairpinDialer) Dial(ctx context.Context, network, address string) (net.Conn, error) {
-	return Hairpin(h.PacketHandler), nil
+	return Hairpin(h.Handler), nil
 }
 
-// Listener
+// HairpinListener contains options to create a Listener that creates Hairpin
+// connections
 type HairpinListener struct {
 	connPool []net.Conn
 
-	PacketHandler packetHandlerFunc
+	Handler func(b []byte) []byte
 }
 
 var _ net.Listener = &HairpinListener{}
 
 func (h *HairpinListener) Accept() (net.Conn, error) {
-	conn := Hairpin(h.PacketHandler)
+	conn := Hairpin(h.Handler)
 	return conn, nil
 }
 

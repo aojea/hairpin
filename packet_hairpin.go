@@ -46,17 +46,19 @@ func (p *packetHairpin) RemoteAddr() net.Addr {
 	return packetHairpinAddress{}
 }
 
-// packetHairpin creates a half-duplex, in-memory, synchronous packet connection where
-// data written on the connection is processed by an optional hook and then read
-// back on the same connection. Reads and Write are serialized, Writes are
-// blocked by Reads.
-func PacketHairpin(fn packetHandlerFunc) net.Conn {
-	return &packetHairpin{newConn(fn)}
+// PacketHairpin creates a half-duplex, in-memory, synchronous packet connection
+// where data written on the connection is processed by the handler and then
+// read back on the same connection. Reads and Write are serialized, Writes are
+// blocked by Reads. If not handler is specified, data is copied directly from
+// Tx to Rx. The handler should be safe for concurrent use by multiple
+// goroutines
+func PacketHairpin(handler func(b []byte) []byte) net.Conn {
+	return &packetHairpin{newConn(handler)}
 }
 
-// Dialer
+// PacketHairpinDialer contains options to Dial a PacketHairpin connection
 type PacketHairpinDialer struct {
-	PacketHandler packetHandlerFunc
+	PacketHandler func(b []byte) []byte
 }
 
 // Dial creates an in memory connection that is processed by the packet handler
@@ -64,11 +66,11 @@ func (p *PacketHairpinDialer) Dial(ctx context.Context, network, address string)
 	return PacketHairpin(p.PacketHandler), nil
 }
 
-// Listener
+// PacketHairpinListener contains options to create a Listener that creates
+// PacketHairpin connections
 type PacketHairpinListener struct {
-	connPool []net.PacketConn
-
-	PacketHandler packetHandlerFunc
+	connPool      []net.PacketConn
+	PacketHandler func(b []byte) []byte
 }
 
 var _ net.Listener = &PacketHairpinListener{}
