@@ -50,7 +50,7 @@ func (h *hairpin) RemoteAddr() net.Addr {
 // data written on the connection is processed by an optional hook and then read
 // back on the same connection. Reads and Write are serialized, Writes are
 // blocked by Reads.
-func Hairpin(fn packetHandlerFunc) *hairpin {
+func Hairpin(fn packetHandlerFunc) net.Conn {
 	return &hairpin{newConn(fn)}
 }
 
